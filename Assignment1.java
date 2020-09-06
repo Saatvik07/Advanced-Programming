@@ -64,9 +64,10 @@ public class Assignment1 {
                     Float.parseFloat(vals[1]));
             PatientArray.add(newPatient);
         }
-        for (int i = 0; i < PatientArray.size(); i++) {
-            System.out.println(PatientArray.get(i).getUID() + " " + PatientArray.get(i).getName());
-        }
+        // for (int i = 0; i < PatientArray.size(); i++) {
+        // System.out.println(PatientArray.get(i).getUID() + " " +
+        // PatientArray.get(i).getName());
+        // }
         while (notEmpty()) {
             String[] values = input.nextLine().split(" ");
             int choice = Integer.parseInt(values[0]);
@@ -86,7 +87,7 @@ public class Assignment1 {
                     float bodTemp = input.nextFloat();
                     System.out.println("Oxygen levels - ");
                     int oxyLevel = input.nextInt();
-                    System.out.println("Number of Avalable beds - ");
+                    System.out.println("Number of Available beds - ");
                     int beds = input.nextInt();
                     input.nextLine();
                     HCI newInstitute = new HCI(instituteName, bodTemp, oxyLevel, beds);
@@ -114,7 +115,11 @@ public class Assignment1 {
                 case 7:
                     for (int i = 0; i < PatientArray.size(); i++) {
                         if (PatientArray.get(i).getUID() == id) {
-                            PatientArray.get(i).getDetails();
+                            if (!PatientArray.get(i).getDeleted()) {
+                                PatientArray.get(i).getDetails();
+                            } else {
+                                System.out.println("Sorry this record was removed");
+                            }
                         }
                     }
                     break;
@@ -133,6 +138,8 @@ public class Assignment1 {
                             }
                         }
                     }
+                    break;
+                default:
                     break;
             }
 
@@ -196,10 +203,10 @@ class HCI extends Assignment1 {
     }
 
     public void removeAdmittedPatients() {
-        while (this.admittedPatients.size() > 0) {
-            System.out.println(this.admittedPatients.remove(0).getUID());
+        for (int i = 0; i < this.admittedPatients.size(); i++) {
+            this.admittedPatients.get(i).setDeleted();
+            System.out.println(this.admittedPatients.get(i).getUID());
         }
-
     }
 
     public void getHCIDetails() {
@@ -238,6 +245,7 @@ class Patient {
     private int recoveryDays = 0;
     private String instituteName = "";
     private boolean admitted = false;
+    private boolean deleted = false;
 
     public Patient(String name, int age, int oxyLevel, float bodTemp) {
         this.UID = count;
@@ -291,5 +299,13 @@ class Patient {
 
     public void setInstitute(String name) {
         this.instituteName = name;
+    }
+
+    public boolean getDeleted() {
+        return this.deleted;
+    }
+
+    public void setDeleted() {
+        this.deleted = true;
     }
 }
