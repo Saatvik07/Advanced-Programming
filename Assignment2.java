@@ -129,9 +129,13 @@ public class Assignment2 {
                         int choice = input.nextInt();
                         input.nextLine();
                         if (choice == 1) {
-                            customerSelected.showConfirmation(totalAmount, deliveryCharges, restaurantSelected);
-                            zotato.addRestaurantRoyalty((float) (totalAmount - deliveryCharges) / 100);
-                            zotato.addDeliveryFees(deliveryCharges);
+                            int success = customerSelected.showConfirmation(totalAmount, deliveryCharges,
+                                    restaurantSelected);
+                            if (success == 1) {
+                                zotato.addRestaurantRoyalty((float) (totalAmount - deliveryCharges) / 100);
+                                zotato.addDeliveryFees(deliveryCharges);
+                            }
+
                         }
                     } else if (menu3choice == 3) {
                         System.out.println("Reward Points " + customerSelected.getRewards());
@@ -557,7 +561,7 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
         }
     }
 
-    public void showConfirmation(float totalAmount, int deliveryCharges, Restaurant restaurantSelected) {
+    public int showConfirmation(float totalAmount, int deliveryCharges, Restaurant restaurantSelected) {
         int totalQuantity = 0;
         int success = this.deductMoney(totalAmount);
         if (success == 1) {
@@ -571,8 +575,9 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
             this.orderList.add(newOrder);
 
             this.calculateRewards(totalAmount, restaurantSelected);
+            return 1;
         }
-        return;
+        return 0;
 
     }
 
