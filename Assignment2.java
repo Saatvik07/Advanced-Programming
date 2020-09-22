@@ -1,7 +1,5 @@
 import java.util.*;
 
-import org.w3c.dom.NameList;
-
 public class Assignment2 {
 
     public static void main(String[] args) {
@@ -18,12 +16,14 @@ public class Assignment2 {
             int menu1Choice = input.nextInt();
             input.nextLine();
             if (menu1Choice == 1) {
+                System.out.println("Choose Restaurant");
                 zotato.displayAll(new Restaurant());
                 int restaurantNumber = input.nextInt();
                 input.nextLine();
                 Restaurant restaurantSelected = zotato.selectARestaurant(restaurantNumber - 1);
-                restaurantSelected.showGreeting();
+
                 while (true) {
+                    restaurantSelected.showGreeting();
                     System.out.println("\t1) Add item");
                     System.out.println("\t2) Edit item");
                     System.out.println("\t3)Print Rewards");
@@ -86,9 +86,10 @@ public class Assignment2 {
                 int customerNumber = input.nextInt();
                 input.nextLine();
                 Customer customerSelected = zotato.selectACustomer(customerNumber - 1);
-                customerSelected.showGreeting();
+
                 Restaurant restaurantSelected = new Restaurant();
                 while (true) {
+                    customerSelected.showGreeting();
                     System.out.println("\t1) Select Restaurant");
                     System.out.println("\t2) Checkout Cart");
                     System.out.println("\t3) Rewards Won");
@@ -102,6 +103,7 @@ public class Assignment2 {
                         int restaurantNumber = input.nextInt();
                         input.nextLine();
                         restaurantSelected = zotato.selectARestaurant(restaurantNumber - 1);
+                        System.out.println("Choose item by code");
                         restaurantSelected.displayAllDishes();
                         int dishNumber = input.nextInt();
                         input.nextLine();
@@ -112,8 +114,8 @@ public class Assignment2 {
                         FoodItemInCart newItemInCart = new FoodItemInCart(dishSelected.getUID(), dishSelected.getName(),
                                 dishSelected.getPrice(), dishSelected.getDiscount(), quantity,
                                 dishSelected.getCategory(), restaurantSelected.getName());
-                        customerSelected.updateCart(newItemInCart);
-                        System.out.println("Items added to cart");
+                        customerSelected.updateCart(newItemInCart, restaurantSelected);
+
                     } else if (menu3choice == 2) {
                         customerSelected.showCart();
                         float totalAmount = customerSelected.calculateTotalBill(restaurantSelected);
@@ -146,12 +148,15 @@ public class Assignment2 {
                 int menu4Choice = input.nextInt();
                 input.nextLine();
                 if (menu4Choice == 1) {
+                    System.out.println("Choose a customer");
+                    System.out.println("");
                     zotato.displayAll(new Customer());
                     int customerNumber = input.nextInt();
                     input.nextLine();
                     Customer customerSelected = zotato.selectACustomer(customerNumber - 1);
                     customerSelected.showDetails();
                 } else if (menu4Choice == 2) {
+                    System.out.println("Choose a restaurant");
                     zotato.displayAll(new Restaurant());
                     int restaurantNumber = input.nextInt();
                     input.nextLine();
@@ -159,8 +164,8 @@ public class Assignment2 {
                     restaurantSelected.showDetails();
                 }
             } else if (menu1Choice == 4) {
-                System.out.println("Total Company Balance - " + zotato.getTotal());
-                System.out.println("Total delivery charges collected - " + zotato.getTotalDeliveryFess());
+                System.out.println("Total Company Balance - INR " + zotato.getTotal());
+                System.out.println("Total delivery charges collected - INR" + zotato.getTotalDeliveryFess());
             } else {
                 break;
             }
@@ -351,6 +356,15 @@ class Restaurant implements canBeLoggedInto, hasOverallDiscount, hasRestaurantDi
         this.totalOrders += 1;
     }
 
+    public int getQuantityOfADish(int UID) {
+        for (int i = 0; i < this.menu.size(); i++) {
+            if (this.menu.get(i).UID == UID) {
+                return this.menu.get(i).quantity;
+            }
+        }
+        return 0;
+    }
+
     @Override
     public float addRestaurantDiscount(float total) {
         return total;
@@ -463,7 +477,11 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
         }
     }
 
-    public void updateCart(FoodItemInCart newItem) {
+    public void updateCart(FoodItemInCart newItem, Restaurant restaurantSelected) {
+        if (newItem.getQuantity() > restaurantSelected.getQuantityOfADish(newItem.getUID())) {
+            System.out.println("Sorry, the restaurant is short on this dish :(");
+            return;
+        }
         for (int i = 0; i < this.cart.size(); i++) {
             if (!this.cart.get(i).getRestaurantName().equals(newItem.getRestaurantName())) {
                 System.out.println("You cannot add dishes from two different restaurants");
@@ -473,8 +491,10 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
                 this.cart.add(newItem);
                 return;
             }
+
         }
         this.cart.add(newItem);
+        System.out.println("Items added to cart");
     }
 
     public float calculateTotalBill(Restaurant restaurantSelected) {
@@ -495,16 +515,16 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
         }
         if (this instanceof EliteCustomer) {
             System.out.println("Delivery Charges - 0/-");
-            System.out.println("Total order value - INR" + totalAmount + "/-");
+            System.out.println("Total order value - INR " + totalAmount + "/-");
         } else {
             System.out.println("Delivery Charges - " + this.getDeliveryFess() + "/-");
             totalAmount = this.addDeliveryFees(totalAmount);
-            System.out.println("Total order value - INR" + totalAmount + "/-");
+            System.out.println("Total order value - INR " + totalAmount + "/-");
         }
         return totalAmount;
     }
 
-    public void deductMoney(float totalAmount) {
+    public int deductMoney(float totalAmount) {
         if (this.rewards > 0) {
             if (totalAmount >= this.rewards) {
                 totalAmount -= this.rewards;
@@ -512,12 +532,15 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
             } else {
                 this.rewards -= totalAmount;
                 totalAmount = 0;
+                return 0;
             }
-            if (totalAmount > 0 && this.walletMoney >= totalAmount) {
-                this.walletMoney = -totalAmount;
-            } else {
-                System.out.println("Insufficient balance in wallet");
-            }
+        }
+        if (totalAmount > 0 && this.walletMoney >= totalAmount) {
+            this.walletMoney -= totalAmount;
+            return 1;
+        } else {
+            System.out.println("Insufficient balance in wallet");
+            return 0;
         }
     }
 
@@ -536,15 +559,21 @@ class Customer implements canBeLoggedInto, hasToPayDeliveryFees, hasCustomerDisc
 
     public void showConfirmation(float totalAmount, int deliveryCharges, Restaurant restaurantSelected) {
         int totalQuantity = 0;
-        for (int i = 0; i < this.cart.size(); i++) {
-            totalQuantity += this.cart.get(i).getQuantity();
-            restaurantSelected.updateDishQuantity(this.cart.get(i).getUID(), this.cart.get(i).getQuantity());
+        int success = this.deductMoney(totalAmount);
+        if (success == 1) {
+            for (int i = 0; i < this.cart.size(); i++) {
+                totalQuantity += this.cart.get(i).getQuantity();
+                restaurantSelected.updateDishQuantity(this.cart.get(i).getUID(), this.cart.get(i).getQuantity());
+
+            }
+            System.out.println(totalQuantity + " items successfully bought for INR " + totalAmount);
+            Order newOrder = new Order(this.cart, totalAmount, deliveryCharges);
+            this.orderList.add(newOrder);
+
+            this.calculateRewards(totalAmount, restaurantSelected);
         }
-        System.out.println(totalQuantity + " items successfully bought for INR " + totalAmount);
-        Order newOrder = new Order(this.cart, totalAmount, deliveryCharges);
-        this.orderList.add(newOrder);
-        this.deductMoney(totalAmount);
-        this.calculateRewards(totalAmount, restaurantSelected);
+        return;
+
     }
 
     public void showDetails() {
