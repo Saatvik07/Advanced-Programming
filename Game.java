@@ -1,7 +1,8 @@
 import java.util.*;
 
 public class Game {
-    static void setPlayerList(PlayerList<Player> listObject, int totalNumber, int characterChoice) {
+    static void setPlayerList(TypeList<Mafia> mafiaList, TypeList<Detective> detectiveList, TypeList<Healer> healerList,
+            TypeList<Commoner> commonerList, int totalNumber, int characterChoice) {
         ArrayList<Integer> indices = new ArrayList<Integer>();
         Random num = new Random();
         int userUID, UID = 0;
@@ -12,26 +13,26 @@ public class Game {
         if (characterChoice == 1) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
-            Mafia m = new Mafia(UID);
-            listObject.add(m);
+            Mafia m = new Mafia(UID, true);
+            mafiaList.add(m);
             numMafia--;
         } else if (characterChoice == 2) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
-            Detective d = new Detective(UID);
-            listObject.add(d);
+            Detective d = new Detective(UID, true);
+            detectiveList.add(d);
             numDetective--;
         } else if (characterChoice == 3) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
-            Healer h = new Healer(UID);
-            listObject.add(h);
+            Healer h = new Healer(UID, true);
+            healerList.add(h);
             numHealer--;
         } else if (characterChoice == 4) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
-            Commoner c = new Commoner(UID);
-            listObject.add(c);
+            Commoner c = new Commoner(UID, true);
+            commonerList.add(c);
             numCommoner--;
         } else {
             UID = num.nextInt(totalNumber);
@@ -39,24 +40,28 @@ public class Game {
             int randomCharacterType = num.nextInt(4);
             switch (randomCharacterType) {
                 case 0:
-                    Mafia m = new Mafia(UID);
-                    listObject.add(m);
+                    Mafia m = new Mafia(UID, true);
+                    mafiaList.add(m);
                     numMafia--;
+                    randomCharacterType = 1;
                     break;
                 case 1:
-                    Detective d = new Detective(UID);
-                    listObject.add(d);
+                    Detective d = new Detective(UID, true);
+                    detectiveList.add(d);
                     numDetective--;
+                    randomCharacterType = 2;
                     break;
                 case 2:
-                    Healer h = new Healer(UID);
-                    listObject.add(h);
+                    Healer h = new Healer(UID, true);
+                    healerList.add(h);
                     numHealer--;
+                    randomCharacterType = 3;
                     break;
                 case 3:
-                    Commoner c = new Commoner(UID);
-                    listObject.add(c);
-                    numMafia--;
+                    Commoner c = new Commoner(UID, true);
+                    commonerList.add(c);
+                    numCommoner--;
+                    randomCharacterType = 4;
                     break;
                 default:
                     break;
@@ -71,54 +76,40 @@ public class Game {
                 indices.add(UID);
                 if (numMafia > 0) {
                     numMafia--;
-                    listObject.add(new Mafia(UID));
+                    mafiaList.add(new Mafia(UID, false));
                 } else if (numDetective > 0) {
                     numDetective--;
-                    listObject.add(new Detective(UID));
+                    detectiveList.add(new Detective(UID, false));
                 } else if (numHealer > 0) {
                     numHealer--;
-                    listObject.add(new Healer(UID));
+                    healerList.add(new Healer(UID, false));
                 } else if (numCommoner > 0) {
                     numCommoner--;
-                    listObject.add(new Commoner(UID));
+                    commonerList.add(new Commoner(UID, false));
                 }
             }
         }
-        Collections.sort(listObject.getList(), new PlayerUIDComparator());
         if (characterChoice == 1) {
-            System.out.print("You are a mafia. Other mafias are");
-            for (int i = 0; i < listObject.size(); i++) {
-                if (listObject.get(i).equals(new Mafia()) && userUID != listObject.get(i).getUID()) {
-                    System.out.print("Player" + listObject.get(i).UID + " ");
-                }
-            }
+            System.out.print("You are a mafia. Other mafias are ");
+            mafiaList.printList();
         } else if (characterChoice == 2) {
-            System.out.print("You are a detective. Other detectives are");
-            for (int i = 0; i < listObject.size(); i++) {
-                if (listObject.get(i).equals(new Detective()) && userUID != listObject.get(i).getUID()) {
-                    System.out.print("Player" + listObject.get(i).UID + " ");
-                }
-            }
+            System.out.print("You are a detective. Other detectives are ");
+            detectiveList.printList();
         } else if (characterChoice == 3) {
-            System.out.print("You are a healer . Other healers are");
-            for (int i = 0; i < listObject.size(); i++) {
-                if (listObject.get(i).equals(new Healer()) && userUID != listObject.get(i).getUID()) {
-                    System.out.print("Player" + listObject.get(i).UID + " ");
-                }
-            }
+            System.out.print("You are a healer . Other healers are ");
+            healerList.printList();
         } else if (characterChoice == 4) {
-            System.out.print("You are a commoner. Other commoners are");
-            for (int i = 0; i < listObject.size(); i++) {
-                if (listObject.get(i).equals(new Commoner()) && userUID != listObject.get(i).getUID()) {
-                    System.out.print("Player" + listObject.get(i).UID + " ");
-                }
-            }
+            System.out.print("You are a commoner. Other commoners are ");
+            commonerList.printList();
         }
         System.out.println();
     }
 
     public static void main(String[] args) {
-        PlayerList<Player> listObject = new PlayerList<Player>();
+        TypeList<Mafia> mafiaList = new TypeList<Mafia>();
+        TypeList<Detective> detectiveList = new TypeList<Detective>();
+        TypeList<Healer> healerList = new TypeList<Healer>();
+        TypeList<Commoner> commonerList = new TypeList<Commoner>();
         Scanner input = new Scanner(System.in);
         System.out.println("Welcome to Mafia");
         System.out.println("Enter the number of players");
@@ -134,35 +125,54 @@ public class Game {
         System.out.println("4) Commoner");
         System.out.println("5) Assign Randomly");
         int characterChoice = input.nextInt();
-        setPlayerList(listObject, totalNumber, characterChoice);
+        setPlayerList(mafiaList, detectiveList, healerList, commonerList, totalNumber, characterChoice);
+        int roundNumber = 1;
     }
 }
 
-class PlayerList<Player> {
-    private ArrayList<Player> playerList;
+class TypeList<Player> {
+    private ArrayList<Player> typeList;
 
-    public PlayerList() {
-        playerList = new ArrayList<Player>();
+    public TypeList() {
+        typeList = new ArrayList<Player>();
     }
 
     public void add(Player newPlayer) {
-        playerList.add(newPlayer);
+        typeList.add(newPlayer);
     }
 
     public Player get(int index) {
-        return playerList.get(index);
+        return typeList.get(index);
     }
 
-    public void sortByUID() {
-
+    public void printList() {
+        for (int i = 0; i < this.typeList.size(); i++) {
+            System.out.print(this.typeList.get(i).toString());
+        }
     }
+    // public boolean gameEnded() {
+    // int mafiaLeft = 0, otherLeft = 0;
+    // for (int i = 0; i < this.playerList.size(); i++) {
+    // if (this.playerList.get(i).equals(new Mafia())) {
+    // mafiaLeft++;
+    // } else {
+    // otherLeft++;
+    // }
+    // }
+    // if (mafiaLeft == 0) {
+    // System.out.println("Game Over");
+    // System.out.println("The Mafias have lost");
 
-    public ArrayList<Player> getList() {
-        return this.playerList;
-    }
+    // }
+
+    // }
+
+    // public ArrayList<Player> getList() {
+    // return this.typeList;
+    // }
 
     public int size() {
-        return playerList.size();
+        return typeList.size();
     }
 }
 
@@ -170,17 +180,19 @@ class Player {
     protected int hitPoints;
     protected int UID;
     protected boolean alive;
+    protected boolean user;
 
     public Player() {
 
     }
 
-    public Player(int UID) {
+    public Player(int UID, boolean user) {
         this.alive = true;
+        this.user = user;
         this.UID = UID;
     }
 
-    protected int voteOut(PlayerList<Player> playerList) {
+    protected int voteOut(TypeList<Player> playerList) {
         ArrayList<Integer> UIDLeft = new ArrayList<Integer>();
         for (int i = 0; i < playerList.size(); i++) {
             if (playerList.get(i).alive) {
@@ -211,11 +223,18 @@ class Player {
         }
     }
 
+    @Override
+    public String toString() {
+        if (!this.user)
+            return "Player" + this.UID + " ";
+        return "Player" + this.UID + "[User] ";
+    }
+
 }
 
 class Mafia extends Player {
-    public Mafia(int UID) {
-        super(UID);
+    public Mafia(int UID, boolean user) {
+        super(UID, user);
         this.hitPoints = 2500;
     }
 
@@ -226,8 +245,8 @@ class Mafia extends Player {
 }
 
 class Detective extends Player {
-    public Detective(int UID) {
-        super(UID);
+    public Detective(int UID, boolean user) {
+        super(UID, user);
         this.hitPoints = 800;
     }
 
@@ -237,8 +256,8 @@ class Detective extends Player {
 }
 
 class Healer extends Player {
-    public Healer(int UID) {
-        super(UID);
+    public Healer(int UID, boolean user) {
+        super(UID, user);
         this.hitPoints = 800;
     }
 
@@ -249,8 +268,8 @@ class Healer extends Player {
 }
 
 class Commoner extends Player {
-    public Commoner(int UID) {
-        super(UID);
+    public Commoner(int UID, boolean user) {
+        super(UID, user);
         this.hitPoints = 1000;
     }
 
