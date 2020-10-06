@@ -1,11 +1,11 @@
 import java.util.*;
 
 public class Game {
-    static void setPlayerList(TypeList<Mafia> mafiaList, TypeList<Detective> detectiveList, TypeList<Healer> healerList,
-            TypeList<Commoner> commonerList, int totalNumber, int characterChoice) {
+    static int setPlayerList(TypeList<Mafia> mafiaList, TypeList<Detective> detectiveList, TypeList<Healer> healerList,
+            TypeList<Commoner> commonerList, ArrayList<Player> playerList, int totalNumber, int characterChoice) {
         ArrayList<Integer> indices = new ArrayList<Integer>();
         Random num = new Random();
-        int userUID, UID = 0;
+        int UID = 0;
         int numMafia = totalNumber / 5;
         int numDetective = totalNumber / 5;
         int numHealer = totalNumber / 10;
@@ -15,24 +15,28 @@ public class Game {
             indices.add(UID);
             Mafia m = new Mafia(UID, true);
             mafiaList.add(m);
+            playerList.add(m);
             numMafia--;
         } else if (characterChoice == 2) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
             Detective d = new Detective(UID, true);
             detectiveList.add(d);
+            playerList.add(d);
             numDetective--;
         } else if (characterChoice == 3) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
             Healer h = new Healer(UID, true);
             healerList.add(h);
+            playerList.add(h);
             numHealer--;
         } else if (characterChoice == 4) {
             UID = num.nextInt(totalNumber);
             indices.add(UID);
             Commoner c = new Commoner(UID, true);
             commonerList.add(c);
+            playerList.add(c);
             numCommoner--;
         } else {
             UID = num.nextInt(totalNumber);
@@ -42,33 +46,36 @@ public class Game {
                 case 0:
                     Mafia m = new Mafia(UID, true);
                     mafiaList.add(m);
+                    playerList.add(m);
                     numMafia--;
-                    randomCharacterType = 1;
+                    characterChoice = 1;
                     break;
                 case 1:
                     Detective d = new Detective(UID, true);
                     detectiveList.add(d);
+                    playerList.add(d);
                     numDetective--;
-                    randomCharacterType = 2;
+                    characterChoice = 2;
                     break;
                 case 2:
                     Healer h = new Healer(UID, true);
                     healerList.add(h);
+                    playerList.add(h);
                     numHealer--;
-                    randomCharacterType = 3;
+                    characterChoice = 3;
                     break;
                 case 3:
                     Commoner c = new Commoner(UID, true);
                     commonerList.add(c);
+                    playerList.add(c);
                     numCommoner--;
-                    randomCharacterType = 4;
+                    characterChoice = 4;
                     break;
                 default:
                     break;
 
             }
         }
-        userUID = UID;
         System.out.println("You are Player" + indices.get(0));
         while (indices.size() < totalNumber) {
             UID = num.nextInt(totalNumber);
@@ -76,16 +83,24 @@ public class Game {
                 indices.add(UID);
                 if (numMafia > 0) {
                     numMafia--;
-                    mafiaList.add(new Mafia(UID, false));
+                    Mafia m = new Mafia(UID, false);
+                    mafiaList.add(m);
+                    playerList.add(m);
                 } else if (numDetective > 0) {
                     numDetective--;
-                    detectiveList.add(new Detective(UID, false));
+                    Detective d = new Detective(UID, false);
+                    detectiveList.add(d);
+                    playerList.add(d);
                 } else if (numHealer > 0) {
                     numHealer--;
-                    healerList.add(new Healer(UID, false));
+                    Healer h = new Healer(UID, false);
+                    healerList.add(h);
+                    playerList.add(h);
                 } else if (numCommoner > 0) {
                     numCommoner--;
-                    commonerList.add(new Commoner(UID, false));
+                    Commoner c = new Commoner(UID, false);
+                    commonerList.add(c);
+                    playerList.add(c);
                 }
             }
         }
@@ -103,6 +118,53 @@ public class Game {
             commonerList.printList();
         }
         System.out.println();
+        Collections.sort(playerList, new PlayerUIDComparator());
+        return characterChoice;
+    }
+
+    static boolean gameEnded(ArrayList<Player> playerList, TypeList<Mafia> mafiaList, TypeList<Detective> detectiveList,
+            TypeList<Healer> healerList, TypeList<Commoner> commonerList) {
+        int mafiaLeft = 0, othersLeft = 0;
+        for (int i = 0; i < playerList.size(); i++) {
+            if (playerList.get(i).equals(new Mafia()) && playerList.get(i).getAlive()) {
+                mafiaLeft++;
+            } else if (playerList.get(i).getAlive()) {
+                othersLeft++;
+            }
+        }
+        if (mafiaLeft == 0 || mafiaLeft == othersLeft) {
+            if (mafiaLeft == 0) {
+                System.out.println("The mafias have lost");
+
+            } else {
+                System.out.println("The mafias have won");
+            }
+            mafiaList.printList();
+            System.out.println("were the mafias");
+            detectiveList.printList();
+            System.out.println("were the detectives");
+            healerList.printList();
+            System.out.println("were healers");
+            commonerList.printList();
+            System.out.println("were commoners");
+            return true;
+        }
+        return false;
+    }
+
+    static void displayRemaining(ArrayList<Player> playerList) {
+        ArrayList<String> playersLeft = new ArrayList<String>();
+        int numberLeft = 0;
+        for (int i = 0; i < playerList.size(); i++) {
+            if (playerList.get(i).getAlive()) {
+                numberLeft++;
+                playersLeft.add(playerList.get(i).toString());
+            }
+        }
+        System.out.println(numberLeft + " players are remaining:");
+        for (int i = 0; i < playersLeft.size(); i++) {
+            System.out.print(playersLeft.get(i));
+        }
     }
 
     public static void main(String[] args) {
@@ -110,6 +172,7 @@ public class Game {
         TypeList<Detective> detectiveList = new TypeList<Detective>();
         TypeList<Healer> healerList = new TypeList<Healer>();
         TypeList<Commoner> commonerList = new TypeList<Commoner>();
+        ArrayList<Player> playerList = new ArrayList<Player>();
         Scanner input = new Scanner(System.in);
         System.out.println("Welcome to Mafia");
         System.out.println("Enter the number of players");
@@ -125,8 +188,14 @@ public class Game {
         System.out.println("4) Commoner");
         System.out.println("5) Assign Randomly");
         int characterChoice = input.nextInt();
-        setPlayerList(mafiaList, detectiveList, healerList, commonerList, totalNumber, characterChoice);
+        characterChoice = setPlayerList(mafiaList, detectiveList, healerList, commonerList, playerList, totalNumber,
+                characterChoice);
         int roundNumber = 1;
+        while (!gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
+            System.out.println("Round " + roundNumber + ":");
+            displayRemaining(playerList);
+            if(characterChoice)
+        }
     }
 }
 
@@ -150,26 +219,10 @@ class TypeList<Player> {
             System.out.print(this.typeList.get(i).toString());
         }
     }
-    // public boolean gameEnded() {
-    // int mafiaLeft = 0, otherLeft = 0;
-    // for (int i = 0; i < this.playerList.size(); i++) {
-    // if (this.playerList.get(i).equals(new Mafia())) {
-    // mafiaLeft++;
-    // } else {
-    // otherLeft++;
-    // }
-    // }
-    // if (mafiaLeft == 0) {
-    // System.out.println("Game Over");
-    // System.out.println("The Mafias have lost");
 
-    // }
+    public void special() {
 
-    // }
-
-    // public ArrayList<Player> getList() {
-    // return this.typeList;
-    // }
+    }
 
     public int size() {
         return typeList.size();
@@ -212,6 +265,10 @@ class Player {
 
     public int getUID() {
         return this.UID;
+    }
+
+    public boolean getAlive() {
+        return this.alive;
     }
 
     @Override
