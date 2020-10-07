@@ -293,7 +293,7 @@ public class Game {
         Scanner input = new Scanner(System.in);
         System.out.println("Welcome to Mafia");
         System.out.println("Enter the number of players");
-        Player votedPlayer = new Player();
+
         int totalNumber = input.nextInt();
         while (totalNumber < 6) {
             System.out.println("The number of players cannot be less than 6");
@@ -311,6 +311,7 @@ public class Game {
         int roundNumber = 1;
         while (!gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
             ArrayList<Integer> selectedPlayer;
+            Player votedPlayer = new Player();
             System.out.println("Round " + roundNumber + ":");
             roundNumber++;
             displayRemaining(playerList);
