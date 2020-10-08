@@ -2,6 +2,16 @@
 import java.util.*;
 
 public class Game {
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     static int setPlayerList(TypeList<Mafia> mafiaList, TypeList<Detective> detectiveList, TypeList<Healer> healerList,
             TypeList<Commoner> commonerList, ArrayList<Player> playerList, int totalNumber, int characterChoice) {
         ArrayList<Integer> indices = new ArrayList<Integer>();
@@ -137,7 +147,7 @@ public class Game {
             detectiveList.clear();
             healerList.clear();
             commonerList.clear();
-            Collections.sort(playerList, new PlayerVotesComparator());
+            Collections.sort(playerList, new PlayerUIDComparator());
             for (int i = 0; i < playerList.size(); i++) {
                 if (playerList.get(i).equals(new Mafia())) {
                     mafiaList.add((Mafia) playerList.get(i));
@@ -150,17 +160,18 @@ public class Game {
                 }
             }
             if (mafiaLeft == 0) {
-                System.out.println("The mafias have lost");
+                System.out.println();
+                System.out.println(ANSI_GREEN + "The mafias have lost" + ANSI_RESET);
 
             } else {
-                System.out.println("The mafias have won");
+                System.out.println(ANSI_RED + "The mafias have won" + ANSI_RESET);
             }
             mafiaList.printList();
-            System.out.println("were the mafias");
+            System.out.println(ANSI_YELLOW + "were the mafias" + ANSI_RESET);
             detectiveList.printList();
-            System.out.println("were the detectives");
+            System.out.println(ANSI_BLUE + "were the detectives" + ANSI_RESET);
             healerList.printList();
-            System.out.println("were healers");
+            System.out.println(ANSI_GREEN + "were healers" + ANSI_RESET);
             commonerList.printList();
             System.out.println("were commoners");
             return true;
@@ -186,7 +197,7 @@ public class Game {
     }
 
     static boolean checkTargetValidMafia(int target, TypeList<Mafia> mafiaList, ArrayList<Player> playerList) {
-        if (target == -1) {
+        if (target == -1 || target > playerList.size() - 1) {
             return true;
         } else {
             for (int i = 0; i < mafiaList.size(); i++) {
@@ -224,6 +235,19 @@ public class Game {
             }
             return false;
         }
+    }
+
+    static boolean checkTargetValidHealer(int target, ArrayList<Player> playerList) {
+        if (target == -1) {
+            return true;
+        } else {
+            for (int i = 0; i < playerList.size(); i++) {
+                if (playerList.get(i).getUID() == target && !playerList.get(i).getAlive()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     static int dealDamageAuxiliary(int HPDecrease, int residue, Mafia mafiaObj) {
@@ -264,11 +288,11 @@ public class Game {
             for (int i = 0; i < playerList.size(); i++) {
                 if (playerList.get(i).getHP() == 0 && playerList.get(i).getAlive()) {
                     removePosition = i;
-                    System.out.println(playerList.get(i).toString() + "has died");
+                    System.out.println(ANSI_RED + playerList.get(i).toString() + "has died" + ANSI_RESET);
                 }
             }
             if (removePosition == -1) {
-                System.out.println("No one has died");
+                System.out.println(ANSI_GREEN + "No one has died" + ANSI_RESET);
             } else {
                 Player toBeVotedOut = playerList.get(removePosition);
                 if (toBeVotedOut.equals(new Mafia())) {
@@ -284,7 +308,8 @@ public class Game {
             }
 
         } else {
-            System.out.println(playerList.get(targetPosition).toString() + " has been voted out");
+            System.out
+                    .println(ANSI_RED + playerList.get(targetPosition).toString() + " has been voted out" + ANSI_RESET);
             Player toBeVotedOut = playerList.get(targetPosition);
             if (toBeVotedOut.equals(new Mafia())) {
                 mafiaList.remove((Mafia) toBeVotedOut);
@@ -315,7 +340,7 @@ public class Game {
             for (int i = 0; i < playerList.size(); i++) {
                 if (!playerList.get(i).user) {
                     int individualVote = playerList.get(i).voteOut(playerList.size(), playerList);
-                    playerList.get(individualVote).setVote();
+                    playerList.get(individualVote).setVote(playerList.get(individualVote).getVotes() + 1);
                 } else if (userAlive(playerList)) {
                     boolean exists = false;
                     while (true) {
@@ -323,7 +348,7 @@ public class Game {
                         int userVotedPlayer = input.nextInt();
                         for (int j = 0; j < playerList.size(); j++) {
                             if (playerList.get(j).getUID() == userVotedPlayer) {
-                                playerList.get(j).setVote();
+                                playerList.get(j).setVote(playerList.get(j).getVotes() + 1);
                                 exists = true;
                             }
                         }
@@ -340,7 +365,7 @@ public class Game {
                 removePlayer(playerList, mafiaList, detectiveList, healerList, commonerList, playerList.size() - 1);
                 break;
             } else {
-                System.out.println("The last voting led to a draw, voting again.....");
+                System.out.println(ANSI_YELLOW + "The last voting led to a draw, voting again....." + ANSI_RESET);
             }
         }
     }
@@ -350,8 +375,14 @@ public class Game {
         for (int i = 0; i < playerList.size(); i++) {
             if (playerList.get(i).getUID() == votedPlayer.getUID()) {
                 playerList.get(i).setAlive();
-                System.out.println(playerList.get(i).toString() + "has been voted out");
+                System.out.println(ANSI_RED + playerList.get(i).toString() + "has been voted out" + ANSI_RESET);
             }
+        }
+    }
+
+    static void setVotesZero(ArrayList<Player> playerList) {
+        for (int i = 0; i < playerList.size(); i++) {
+            playerList.get(i).setVote(0);
         }
     }
 
@@ -387,17 +418,6 @@ public class Game {
         }
     }
 
-    // static boolean specialManualDetective(ArrayList<Player> playerList, int
-    // target) {
-    // for (int i = 0; i < playerList.size(); i++) {
-    // if (playerList.get(i).getUID() == target && playerList.get(i).equals(new
-    // Mafia())) {
-    // return true;
-    // }
-    // }
-    // return false;
-    // }
-
     public static void main(String[] args) {
         TypeList<Mafia> mafiaList = new TypeList<Mafia>();
         TypeList<Detective> detectiveList = new TypeList<Detective>();
@@ -406,7 +426,7 @@ public class Game {
         ArrayList<Player> playerList = new ArrayList<Player>();
         ArrayList<Integer> playersTested = new ArrayList<Integer>();
         Scanner input = new Scanner(System.in);
-        System.out.println("Welcome to Mafia");
+        System.out.println(ANSI_PURPLE + "Welcome to Mafia" + ANSI_RESET);
         System.out.println("Enter the number of players");
         int totalNumber = input.nextInt();
         while (totalNumber < 6) {
@@ -426,14 +446,15 @@ public class Game {
         while (!gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
             ArrayList<Integer> selectedPlayer;
             Player votedPlayer = new Player();
-            System.out.println("Round " + roundNumber + ":");
+            System.out.println();
+            System.out.println(ANSI_CYAN + "Round " + roundNumber + ":" + ANSI_RESET);
             roundNumber++;
             displayRemaining(playerList);
             if (characterChoice == 1) {
                 int target = -1;
                 if (mafiaList.size() != 0 && userAlive(playerList)) {
                     while (checkTargetValidMafia(target, mafiaList, playerList)) {
-                        System.out.println("Choose a target: ");
+                        System.out.println(ANSI_YELLOW + "Choose a target: " + ANSI_RESET);
                         target = input.nextInt();
 
                     }
@@ -445,7 +466,7 @@ public class Game {
                 } else if (mafiaList.size() != 0) {
                     selectedPlayer = mafiaList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
                     specialAutomaticMafia(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
-                    System.out.println("Mafias have chosen their target");
+                    System.out.println(ANSI_YELLOW + "Mafias have chosen their target" + ANSI_YELLOW);
                 }
 
                 int playerToTestUID = -1;
@@ -467,12 +488,12 @@ public class Game {
                     }
                     playersTested.add(playerToTestUID);
                 }
-                System.out.println("Detectives have chosen a player to test");
+                System.out.println(ANSI_BLUE + "Detectives have chosen a player to test" + ANSI_RESET);
                 if (healerList.size() != 0) {
                     selectedPlayer = healerList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
                     specialAutomaticHealer(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
                 }
-                System.out.println("Healers have chosen a player to heal");
+                System.out.println(ANSI_GREEN + "Healers have chosen a player to heal" + ANSI_RESET);
                 removePlayer(playerList, mafiaList, detectiveList, healerList, commonerList, -1);
                 if (gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
                     break;
@@ -486,23 +507,23 @@ public class Game {
             } else if (characterChoice == 2) {
                 selectedPlayer = mafiaList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
                 specialAutomaticMafia(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
-                System.out.println("Mafias have chosen their target");
+                System.out.println(ANSI_YELLOW + "Mafias have chosen their target" + ANSI_YELLOW);
                 if (detectiveList.size() != 0 && userAlive(playerList)) {
                     int target = -1;
                     while (checkTargetValidDetective(target, detectiveList, playerList)
                             || playersTested.contains(target)) {
-                        System.out.println("Choose a player to test: ");
+                        System.out.println(ANSI_BLUE + "Choose a player to test: " + ANSI_RESET);
                         target = input.nextInt();
                     }
                     playersTested.add(target);
                     for (int i = 0; i < playerList.size(); i++) {
                         if (playerList.get(i).getUID() == target && playerList.get(i).equals(new Mafia())) {
                             votedPlayer = playerList.get(i);
-                            System.out.println("THe player you have chosen is a mafia");
+                            System.out.println(ANSI_GREEN + "The player you have chosen is a mafia" + ANSI_RESET);
                         }
                     }
                     if (!votedPlayer.equals(new Mafia())) {
-                        System.out.println("The player you have chosen is not mafia");
+                        System.out.println(ANSI_RED + "The player you have chosen is not mafia" + ANSI_RESET);
                     }
                 } else if (detectiveList.size() != 0) {
                     int playerToTestUID = -1;
@@ -522,14 +543,14 @@ public class Game {
                         }
                     }
                     playersTested.add(playerToTestUID);
-                    System.out.println("Detectives have chosen a player to test");
+                    System.out.println(ANSI_BLUE + "Detectives have chosen a player to test" + ANSI_RESET);
                 }
 
                 if (healerList.size() != 0) {
                     selectedPlayer = healerList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
                     specialAutomaticHealer(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
                 }
-                System.out.println("Healers have chosen a player to heal");
+                System.out.println(ANSI_GREEN + "Healers have chosen a player to heal" + ANSI_RESET);
                 removePlayer(playerList, mafiaList, detectiveList, healerList, commonerList, -1);
                 if (gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
                     break;
@@ -539,8 +560,59 @@ public class Game {
                 } else {
                     votingMafiaNotTested(playerList, mafiaList, detectiveList, healerList, commonerList);
                 }
+            } else if (characterChoice == 3) {
+                selectedPlayer = mafiaList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
+                specialAutomaticMafia(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
+                System.out.println(ANSI_YELLOW + "Mafias have chosen their target" + ANSI_RESET);
+                int playerToTestUID = -1;
+                if (detectiveList.size() != 0) {
+                    while (playersTested.contains(playerToTestUID) || playerToTestUID == -1) {
+                        selectedPlayer = detectiveList.specialAutomatic(mafiaList, detectiveList, healerList,
+                                commonerList);
+                        if (selectedPlayer.get(0) == 0) {
+                            Mafia selectedMafia = mafiaList.get(selectedPlayer.get(1));
+                            playerToTestUID = selectedMafia.getUID();
+                            votedPlayer = selectedMafia;
+                        } else if (selectedPlayer.get(0) == 1) {
+                            Healer selectedHealer = healerList.get(selectedPlayer.get(1));
+                            playerToTestUID = selectedHealer.getUID();
+                        } else if (selectedPlayer.get(0) == 2) {
+                            Commoner selectedCommoner = commonerList.get(selectedPlayer.get(1));
+                            playerToTestUID = selectedCommoner.getUID();
+                        }
+                    }
+                    playersTested.add(playerToTestUID);
+                }
+                System.out.println(ANSI_BLUE + "Detectives have chosen a player to test" + ANSI_RESET);
+                if (healerList.size() != 0 && userAlive(playerList)) {
+                    int target = -1;
+                    while (checkTargetValidHealer(target, playerList)) {
+                        System.out.println("Choose a player to heal");
+                        target = input.nextInt();
+                    }
+                    for (int i = 0; i < playerList.size(); i++) {
+                        if (playerList.get(i).getUID() == target) {
+                            playerList.get(i).setHP(playerList.get(i).getHP() + 500);
+                        }
+                    }
+                } else if (healerList.size() != 0) {
+                    selectedPlayer = healerList.specialAutomatic(mafiaList, detectiveList, healerList, commonerList);
+                    specialAutomaticHealer(selectedPlayer, mafiaList, detectiveList, healerList, commonerList);
+                    System.out.println(ANSI_GREEN + "Healers have chosen a player to heal" + ANSI_RESET);
+                }
+                removePlayer(playerList, mafiaList, detectiveList, healerList, commonerList, -1);
+                if (gameEnded(playerList, mafiaList, detectiveList, healerList, commonerList)) {
+                    break;
+                }
+                if (votedPlayer.equals(new Mafia())) {
+                    votingMafiaTested(playerList, mafiaList, (Mafia) votedPlayer);
+                } else {
+                    votingMafiaNotTested(playerList, mafiaList, detectiveList, healerList, commonerList);
+                }
+                setVotesZero(playerList);
             }
         }
+
     }
 }
 
@@ -658,7 +730,6 @@ class Player {
     protected int votes;
 
     public Player() {
-
     }
 
     public Player(int UID, boolean user) {
@@ -674,7 +745,6 @@ class Player {
         while (votePlayer == this.UID || votePlayer == -1 || !playerList.get(votePlayer).getAlive()) {
             votePlayer = num.nextInt(size);
         }
-
         return votePlayer;
     }
 
@@ -713,8 +783,8 @@ class Player {
         return this.hitPoints;
     }
 
-    public void setVote() {
-        this.votes += 1;
+    public void setVote(int count) {
+        this.votes = count;
     }
 
     public int getVotes() {
